@@ -19,55 +19,58 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+require 'poise'
+require 'chef/resource'
+require 'chef/provider'
 
-class Chef
-  class Resource::MongodbInstance < Resource
+module MongodbInstance
+  class Resource < Chef::Resource
     include Poise
+    provides(:mongodb_instance)
     actions(:enable, :start, :stop, :disable, :status, :restart)
 
-    attribute(:logpath,            kind_of: String,              default: '/var/log/mongodb/mongodb.log')
-    attribute(:dbpath,             kind_of: String,              default: '/data')
-    attribute(:configserver_nodes, kind_of: Array,              default: [])
-    attribute(:replicaset,         kind_of: [Array, NilClass],  default: nil)
-    attribute(:service_action,     kind_of: Array,              default: [:enable, :start])
-    attribute(:service_notifies,   kind_of: Array,              default: [])
+    attribute(:logpath,            kind_of: String,            default: '/var/log/mongodb/mongodb.log')
+    attribute(:dbpath,             kind_of: String,            default: '/data')
+    attribute(:configserver_nodes, kind_of: Array,             default: [])
+    attribute(:replicaset,         kind_of: [Array, NilClass], default: nil)
+    attribute(:service_action,     kind_of: Array,             default: [:enable, :start])
+    attribute(:service_notifies,   kind_of: Array,             default: [])
 
-    attribute(:is_configserver,  kind_of: String,  default: lazy { node['mongodb']['is_configserver'] })
-    attribute(:is_mongos,        kind_of: String,  default: lazy { node['mongodb']['is_mongos'] })
-    attribute(:is_replicaset,    kind_of: String,  default: lazy { node['mongodb']['is_replicaset'] })
-    attribute(:is_shard,         kind_of: String,  default: lazy { node['mongodb']['is_shard'] })
+    attribute(:is_configserver, kind_of: String,  default: lazy { node['mongodb']['is_configserver'] })
+    attribute(:is_mongos,       kind_of: String,  default: lazy { node['mongodb']['is_mongos'] })
+    attribute(:is_replicaset,   kind_of: String,  default: lazy { node['mongodb']['is_replicaset'] })
+    attribute(:is_shard,        kind_of: String,  default: lazy { node['mongodb']['is_shard'] })
 
     # This table is painfully wide, but it's really easiest to visually scan this way
-    attribute(:auto_configure_replicaset,  kind_of: [TrueClass, FalseClass],  default: lazy { node['mongodb']['auto_configure']['replicaset'] })
-    attribute(:auto_configure_sharding,    kind_of: [TrueClass, FalseClass],  default: lazy { node['mongodb']['auto_configure']['sharding'] })
-    attribute(:bind_ip,                    kind_of: String,                   default: lazy { node['mongodb']['config']['bind_ip']})
-    attribute(:cluster_name,               kind_of: String,                   default: lazy { node['mongodb']['cluster_name'] })
-    attribute(:config,                     kind_of: String,                   default: lazy { node['mongodb']['config'] })
-    attribute(:dbconfig_file,              kind_of: String,                   default: lazy { node['mongodb']['dbconfig_file'] })
-    attribute(:dbconfig_file_template,     kind_of: String,                   default: lazy { node['mongodb']['dbconfig_file_template'] })
-    attribute(:init_dir,                   kind_of: String,                   default: lazy { node['mongodb']['init_dir'] })
-    attribute(:init_script_template,       kind_of: String,                   default: lazy { node['mongodb']['init_script_template'] })
-    attribute(:mongodb_group,              kind_of: String,                   default: lazy { node['mongodb']['group'] })
-    attribute(:mongodb_user,               kind_of: String,                   default: lazy { node['mongodb']['user'] })
-    attribute(:port,                       kind_of: Integer,                  default: lazy { node['mongodb']['config']['port']})
-    attribute(:reload_action,              kind_of: String,                   default: lazy { node['mongodb']['reload_action'] })
-    attribute(:replicaset_name,            kind_of: String,                   default: lazy { node['mongodb']['config']['replSet'] })
-    attribute(:root_group,                 kind_of: String,                   default: lazy { node['mongodb']['root_group'] })
-    attribute(:shard_name,                 kind_of: String,                   default: lazy { node['mongodb']['shard_name'] })
-    attribute(:sharded_collections,        kind_of: String,                   default: lazy { node['mongodb']['sharded_collections'] })
-    attribute(:sysconfig_file,             kind_of: String,                   default: lazy { node['mongodb']['sysconfig_file'] })
-    attribute(:sysconfig_file_template,    kind_of: String,                   default: lazy { node['mongodb']['sysconfig_file_template'] })
-    attribute(:sysconfig_vars,             kind_of: Hash,                     default: lazy { node['mongodb']['sysconfig'] })
-    attribute(:template_cookbook,          kind_of: String,                   default: lazy { node['mongodb']['template_cookbook'] })
-    attribute(:ulimit,                     kind_of: String,                   default: lazy { node['mongodb']['ulimit'] })
+    attribute(:auto_configure_replicaset, kind_of: [TrueClass, FalseClass], default: lazy { node['mongodb']['auto_configure']['replicaset'] })
+    attribute(:auto_configure_sharding,   kind_of: [TrueClass, FalseClass], default: lazy { node['mongodb']['auto_configure']['sharding'] })
+    attribute(:bind_ip,                   kind_of: String,                  default: lazy { node['mongodb']['config']['bind_ip']})
+    attribute(:cluster_name,              kind_of: String,                  default: lazy { node['mongodb']['cluster_name'] })
+    attribute(:config,                    kind_of: String,                  default: lazy { node['mongodb']['config'] })
+    attribute(:dbconfig_file,             kind_of: String,                  default: lazy { node['mongodb']['dbconfig_file'] })
+    attribute(:dbconfig_file_template,    kind_of: String,                  default: lazy { node['mongodb']['dbconfig_file_template'] })
+    attribute(:init_dir,                  kind_of: String,                  default: lazy { node['mongodb']['init_dir'] })
+    attribute(:init_script_template,      kind_of: String,                  default: lazy { node['mongodb']['init_script_template'] })
+    attribute(:mongodb_group,             kind_of: String,                  default: lazy { node['mongodb']['group'] })
+    attribute(:mongodb_user,              kind_of: String,                  default: lazy { node['mongodb']['user'] })
+    attribute(:port,                      kind_of: Integer,                 default: lazy { node['mongodb']['config']['port']})
+    attribute(:reload_action,             kind_of: String,                  default: lazy { node['mongodb']['reload_action'] })
+    attribute(:replicaset_name,           kind_of: String,                  default: lazy { node['mongodb']['config']['replSet'] })
+    attribute(:root_group,                kind_of: String,                  default: lazy { node['mongodb']['root_group'] })
+    attribute(:shard_name,                kind_of: String,                  default: lazy { node['mongodb']['shard_name'] })
+    attribute(:sharded_collections,       kind_of: String,                  default: lazy { node['mongodb']['sharded_collections'] })
+    attribute(:sysconfig_file,            kind_of: String,                  default: lazy { node['mongodb']['sysconfig_file'] })
+    attribute(:sysconfig_file_template,   kind_of: String,                  default: lazy { node['mongodb']['sysconfig_file_template'] })
+    attribute(:sysconfig_vars,            kind_of: Hash,                    default: lazy { node['mongodb']['sysconfig'] })
+    attribute(:template_cookbook,         kind_of: String,                  default: lazy { node['mongodb']['template_cookbook'] })
+    attribute(:ulimit,                    kind_of: String,                  default: lazy { node['mongodb']['ulimit'] })
 
     # XXX None of the config munging has been ported from the define impl
-
     def init_file
       if node['mongodb']['apt_repo'] == 'ubuntu-upstart'
-        init_file = File.join(node['mongodb']['init_dir'], '#{name}.conf')
+        init_file = ::File.join(node['mongodb']['init_dir'], '#{name}.conf')
       else
-        init_file = File.join(node['mongodb']['init_dir'], name)
+        init_file = ::File.join(node['mongodb']['init_dir'], name)
       end
       return init_file
     end
@@ -160,8 +163,9 @@ class Chef
     end
   end
 
-  class Provider::MongodbInstance < Provider
-    include Poise::Provider
+  class Provider < Chef::Provider
+    include Poise
+    provides(:mongodb_instance)
 
     def action_enable
       converge_by("enable mongodb instance #{new_resource.name}") do
@@ -216,6 +220,8 @@ class Chef
     private
 
     def create_configs
+      Chef::Log.info(new_resource.sysconfig_file_template);
+
       # default file
       template new_resource.sysconfig_file do
         cookbook new_resource.template_cookbook
@@ -273,7 +279,7 @@ class Chef
 
       # log dir [make sure it exists]
       if new_resource.logpath
-        directory File.dirname(new_resource.logpath) do
+        directory ::File.dirname(new_resource.logpath) do
           owner new_resource.mongodb_user
           group new_resource.mongodb_group
           mode '0755'
