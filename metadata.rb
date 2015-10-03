@@ -1,8 +1,9 @@
-name              'mongodb'
-maintainer        'edelight GmbH'
-maintainer_email  'markus.korn@edelight.de'
+name              'brigade-mongodb'
+maintainer        'Chef Brigade'
 license           'Apache 2.0'
 description       'Installs and configures mongodb'
+source_url        'https://github.com/chef-brigade/mongodb-cookbook'
+issues_url        'https://github.com/chef-brigade/mongodb-cookbook/issues'
 version           '0.16.3'
 
 recipe 'mongodb', 'Installs and configures a single node mongodb instance'
